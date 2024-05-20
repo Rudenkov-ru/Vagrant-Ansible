@@ -6,12 +6,6 @@
       yum:
         name: nginx
         state: present
-      register: ngix_install_result    
-
-    - name: Отобразить прогресс выполнения
-      debug:
-        msg: "{{ item }}"
-      loop: "{{ ngix_install_result.results }}"
 
     - name: Запустить и включить Nginx
       systemd:
