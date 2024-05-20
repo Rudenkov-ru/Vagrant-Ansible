@@ -58,7 +58,7 @@ Vagrant.configure("2") do |config|
   # Добавляем публичный ключ для root
   config.vm.provision "shell", inline: <<-SHELL
     mkdir -p /root/.ssh
-    echo ""ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCfjelCz0CVTngjQVyPa7Kdpwkm4C1ZyMw5MzZRikziTqySNFPKEXLy6Iu/OvQ8xSI6ZzyOD3K1TzKRiWpB3Y6zznV5nGMuWbEKgH4Oq27JGpObVnXizYYi9mzQRbB25sc9WsmxRjsMlPTROpHdImAE5g7wEWpGJkUM1kadtlxRADQlDqZy1PF+bJ6eWJJvjGwaSyG0NFOvRZ60xgDP+W3eBOwT+9M2ZQAnqU6kc2v9sfnsvgHw231GXSwNnJwswwxsAWY7U5wDuVZuY3U8VMAhV5HJCnzyqDWgTo0ATMG1cbEbxB+fV1jlioebDon3tfav2aSKLtylnhF77ad+sIeCaw8LhESkP5I6sFqQLTra3+tRJVxEr2LQ2ww60xnUQtfZFIcbvKJ/Rf0aeSB+0I7sIPBiRz065bAF8FxGpvw5BR18Pb8Wq7lI7oBhfragZovMsc9XOqG6XTeYIJjo5k7mOfgF0jmaOKtmRRpc+JyTdaR1pOKDwy+VJtNZQDbWaNs= artem@BLK-199 >> /root/.ssh/authorized_keys
+    echo ""your id-rsa.pub >> /root/.ssh/authorized_keys
     chmod 700 /root/.ssh
     chmod 600 /root/.ssh/authorized_keys
   SHELL
