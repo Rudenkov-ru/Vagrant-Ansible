@@ -1,0 +1,15 @@
+- name: Обновить URL базового репозитория CentOS в файлах
+  hosts: all
+  become: true
+  tasks:
+    - name: комментим миррор
+      shell: sudo sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
+
+    - name: Выполнить замену URL базового репозитория
+      shell: sudo sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
+
+    - name: Обновить пакеты
+      yum:
+        name: '*'
+        state: latest
+        update_cache: yes

@@ -1,0 +1,79 @@
+- name: Установить и запустить node_exporter
+  hosts: all
+  become: yes
+
+  vars:
+    node_exporter_version: '1.5.0'
+    node_exporter_dir: '/usr/local/bin'
+    node_exporter_user: 'node_exporter'
+
+  tasks:
+    - name: Убедитесь, что wget установлен
+      yum:
+        name: wget
+        state: present
+
+    - name: Создайте пользователя для node_exporter
+      user:
+        name: "{{ node_exporter_user }}"
+        shell: /sbin/nologin
+
+    - name: Скачайте node_exporter
+      get_url:
+        url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+        dest: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+        mode: '0644'
+
+    - name: Распакуйте node_exporter
+      unarchive:
+        src: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+        dest: "/tmp/"
+        remote_src: yes
+
+    - name: Переместите node_exporter бинарный файл
+      command: mv /tmp/node_exporter-{{ node_exporter_version }}.linux-amd64/node_exporter {{ node_exporter_dir }}/node_exporter
+
+    - name: Создайте systemd юнит файл для node_exporter
+      copy:
+        dest: /etc/systemd/system/node_exporter.service
+        content: |
+          [Unit]
+          Description=Node Exporter
+          Wants=network-online.target
+          After=network-online.target
+
+          [Service]
+          User={{ node_exporter_user }}
+          ExecStart={{ node_exporter_dir }}/node_exporter
+          Restart=always
+
+          [Install]
+          WantedBy=default.target
+
+    - name: Перезагрузите systemd для загрузки нового юнит файла
+      systemd:
+        daemon_reload: yes
+
+    - name: Установка FWD
+      yum:
+        name: firewalld
+        state: present
+
+    - name: Запустить и включить firewalld
+      systemd:
+        name: firewalld
+        state: started
+        enabled: yes
+
+    - name: Открыть порт 9100
+      firewalld:
+        port: 9100/tcp
+        permanent: true
+        state: enabled
+        immediate: yes     
+
+    - name: Запустите и включите node_exporter
+      systemd:
+        name: node_exporter
+        state: started
+        enabled: yes

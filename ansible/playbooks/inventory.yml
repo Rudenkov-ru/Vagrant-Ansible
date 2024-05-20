@@ -1,0 +1,55 @@
+all:
+  hosts:
+    lb_fe:
+      ansible_host: 192.168.56.10
+      ansible_user: root
+    lb_db:
+      ansible_host: 192.168.56.13
+      ansible_user: root
+    fe1:
+      ansible_host: 192.168.56.11
+      ansible_user: root
+    fe2:
+      ansible_host: 192.168.56.12
+      ansible_user: root
+    master1:
+      ansible_host: 192.168.56.14
+      ansible_user: root
+    master2:
+      ansible_host: 192.168.56.15
+      ansible_user: root
+    slave1:
+      ansible_host: 192.168.56.16
+      ansible_user: root
+    slave2:
+      ansible_host: 192.168.56.17
+      ansible_user: root
+    monitoring:
+      ansible_host: 192.168.56.18
+      ansible_user: root
+    backup:
+      ansible_host: 192.168.56.19
+      ansible_user: root
+
+lb:
+  hosts:
+    lb_fe:
+    lb_db:
+web_servers:
+  hosts:
+    fe1:
+    fe2:
+database_servers:
+  hosts:
+    master1:
+    master2:
+    slave1:
+    slave2:
+masters:
+  hosts:
+    master1:
+    master2:
+slaves:
+  hosts:
+    slave1:
+    slave2:

@@ -1,0 +1,41 @@
+- name: Install Percona Server and dependencies
+  hosts: all
+  become: yes
+  tasks:
+    - name: Import Percona GPG key
+      rpm_key:
+        state: present
+        key: https://www.percona.com/downloads/RPM-GPG-KEY-percona
+
+    - name: Add Percona repository
+      #      shell: yum install https://repo.percona.com/yum/percona-release-latest.noarch.rpm -y
+      yum:
+        name: https://repo.percona.com/yum/percona-release-latest.noarch.rpm
+        state: present
+    
+    - name: Setup Percona repository
+      shell: percona-release setup ps80 -y
+
+    - name: Install Percona Server
+      yum:
+        name: percona-server-server
+        state: present
+
+    - name: Запустить и включить MySQL
+      systemd:
+        name: mysqld
+        state: started
+        enabled: yes
+
+    - name: Check defaul mysql passwd     
+      shell: "cat /var/log/mysqld.log | grep root | awk '{print $13}'"
+      register: mysql_temp_password
+
+    - name: Change MySQL root password using temporary password
+      shell: mysql -uroot -p'{{ mysql_temp_password.stdout }}' --connect-expired-password -e "ALTER USER 'root'@'localhost' IDENTIFIED BY 'Rudenkov1499!';"
+      ignore_errors: yes
+
+    - name: Restart MySQL
+      service:
+        name: mysqld
+        state: restarted

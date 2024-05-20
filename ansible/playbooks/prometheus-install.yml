@@ -1,0 +1,105 @@
+- name: Установить и запустить Prometheus
+  hosts: all
+  become: yes
+
+  vars:
+    prometheus_version: '2.44.0'
+    prometheus_user: 'prometheus'
+    prometheus_dir: '/etc/prometheus'
+    prometheus_data_dir: '/var/lib/prometheus'
+    prometheus_bin_dir: '/usr/local/bin'
+    prometheus_tarball: "prometheus-{{ prometheus_version }}.linux-amd64.tar.gz"
+    prometheus_url: "https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/{{ prometheus_tarball }}"
+
+  tasks:
+    - name: Убедитесь, что wget установлен
+      yum:
+        name: wget
+        state: present
+
+    - name: Создайте пользователя для Prometheus
+      user:
+        name: "{{ prometheus_user }}"
+        shell: /sbin/nologin
+
+    - name: Скачайте Prometheus
+      get_url:
+        url: "{{ prometheus_url }}"
+        dest: "/tmp/{{ prometheus_tarball }}"
+        mode: '0644'
+
+    - name: Распакуйте Prometheus
+      unarchive:
+        src: "/tmp/{{ prometheus_tarball }}"
+        dest: "/tmp/"
+        remote_src: yes
+
+    - name: Создайте необходимые директории
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ prometheus_user }}"
+        group: "{{ prometheus_user }}"
+        mode: '0755'
+      loop:
+        - "{{ prometheus_dir }}"
+        - "{{ prometheus_data_dir }}"
+        - "{{ prometheus_dir }}/consoles"
+        - "{{ prometheus_dir }}/console_libraries"
+
+    - name: Переместите Prometheus бинарные файлы
+      command: mv /tmp/prometheus-{{ prometheus_version }}.linux-amd64/prometheus {{ prometheus_bin_dir }}/prometheus
+      become: yes
+
+    - name: Переместите Prometheus утилиту promtool
+      command: mv /tmp/prometheus-{{ prometheus_version }}.linux-amd64/promtool {{ prometheus_bin_dir }}/promtool
+      become: yes
+
+    - name: Переместите Prometheus конфигурационный файл
+      command: mv /tmp/prometheus-{{ prometheus_version }}.linux-amd64/prometheus.yml {{ prometheus_dir }}/prometheus.yml
+      become: yes
+
+    - name: Переместите консоли Prometheus
+      command: mv /tmp/prometheus-{{ prometheus_version }}.linux-amd64/consoles /etc/prometheus/
+      become: yes
+
+
+    - name: Переместите библиотеки консолей Prometheus
+      command: mv /tmp/prometheus-{{ prometheus_version }}.linux-amd64/console_libraries {{ prometheus_dir }}/
+      become: yes
+
+    - name: Создайте systemd unit файл для Prometheus
+      copy:
+        dest: /etc/systemd/system/prometheus.service
+        content: |
+          [Unit]
+          Description=Prometheus
+          Wants=network-online.target
+          After=network-online.target
+
+          [Service]
+          User={{ prometheus_user }}
+          ExecStart={{ prometheus_bin_dir }}/prometheus \
+            --config.file={{ prometheus_dir }}/prometheus.yml \
+            --storage.tsdb.path={{ prometheus_data_dir }}
+          Restart=always
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Перезагрузите systemd для загрузки нового unit файла
+      systemd:
+        daemon_reload: yes
+
+    - name: Открыть порт 9090 для prometheus
+      firewalld:
+        port: 9090/tcp
+        permanent: true
+        state: enabled
+        immediate: yes      
+
+    - name: Запустите и включите Prometheus
+      systemd:
+        name: prometheus
+        state: started
+        enabled: yes

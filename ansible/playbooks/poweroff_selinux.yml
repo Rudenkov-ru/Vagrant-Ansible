@@ -1,0 +1,14 @@
+- name: Отключение SElinux
+  hosts: all
+  become: yes
+
+
+  tasks:
+    - name: Изменяем в файлах конфига строку
+      replace:
+        path: "/etc/selinux/config"
+        regexp: "^SELINUX=enforcing"
+        replace: "SELINUX=disabled"
+
+    - name: Перезагружаем сервер чтобы измениния вступили в силу
+      shell: sudo reboot     
