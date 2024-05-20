@@ -1,12 +1,12 @@
-#1Vagrant-Ansible 
+# Vagrant-Ansible 
 
-#3**VAGRANT**
+### **VAGRANT**
 * INSTALL vagrant
 * mkdir vagrant
 * cd vagrant
 * vagrant init
 * vagrant up
 
-#3**Ansible**
+### **Ansible**
 * INSTALL ansible
  
