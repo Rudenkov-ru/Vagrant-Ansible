@@ -5,6 +5,7 @@
 * mkdir vagrant
 * cd vagrant
 * vagrant init
+
 * vagrant up
 
 ### **Ansible**
